@@ -5,221 +5,262 @@
 <title>Tap Game PRO</title>
 
 <style>
-
 body {
-  background: #0f172a;
+  background: #0b1830;
   color: white;
   font-family: Arial;
   text-align: center;
-  margin-top: 50px;
+  margin-top: 40px;
 }
 
-#coin {
-  font-size: 100px;
+#tapBtn {
+  width: 120px;
+  height: 120px;
+  border: 3px solid white;
+  margin: 20px auto;
   cursor: pointer;
-}
-
-#score {
-  font-size: 40px;
-  margin: 20px;
 }
 
 button {
   padding: 10px 20px;
-  font-size: 18px;
   margin: 10px;
+  font-size: 16px;
   cursor: pointer;
 }
 
+hr {
+  margin: 30px;
+}
 </style>
-
 </head>
 <body>
 
 <h1>Tap Game PRO</h1>
 
-<div id="coin">🪙</div>
+<div id="tapBtn"></div>
 
-<div id="score">0</div>
+<h2 id="score">0</h2>
 
-<div>Energy: <span id="energy">100</span>/100</div>
+<p id="energy">Energy: 100/100</p>
 
 <hr>
 
 <h3>Upgrades</h3>
-<button onclick="buyTapUpgrade()">
-Upgrade Tap (+1) Cost: <span id="tapCost">10</span>
-</button>
 
-<br><br>
-
-<button onclick="buyAutoMiner()">
-Buy Auto Miner Cost: <span id="autoCost">50</span>
-</button>
-
-<div>Tap Power: <span id="tapPower">1</span></div>
-
-<div>Auto Miners: <span id="autoMiners">0</span></div>
-
-<button onclick="buyTapUpgrade()">
-Upgrade Tap Power
-Cost: <span id="tapCost">10</span>
+<button onclick="upgradeTap()">
+Upgrade Tap Power Cost: <span id="tapCost">50</span>
 </button>
 
 <br>
 
-<button onclick="buyAutoMiner()">
-Buy Auto Miner
-Cost: <span id="autoCost">50</span>
+<button onclick="buyMiner()">
+Buy Auto Miner Cost: <span id="minerCost">200</span>
 </button>
 
-<div>Tap Power: <span id="tapPower">1</span></div>
+<p>
+Tap Power: <span id="tapPower">1</span><br>
+Auto Miners: <span id="miners">0</span>
+</p>
 
-<div>Auto Miners: <span id="autoMiners">0</span></div>
+<script type="module">
 
-<script>
+// FIREBASE IMPORT
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 
-// DATA
+import { getDatabase, ref, set }
+from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
 
-let score = parseInt(localStorage.getItem("score")) || 0;
-let energy = parseInt(localStorage.getItem("energy")) || 100;
 
-let tapPower = parseInt(localStorage.getItem("tapPower")) || 1;
-let tapCost = parseInt(localStorage.getItem("tapCost")) || 10;
+// TU CONFIG ORIGINAL (FUNCIONA)
+const firebaseConfig = {
+  apiKey: "AIzaSyDuLVVLdgaxvXWK1Km4ppXNQjuxWrr6jS0",
+  authDomain: "tap-game-web-92e4e.firebaseapp.com",
+  databaseURL: "https://tap-game-web-92e4e-default-rtdb.firebaseio.com",
+  projectId: "tap-game-web-92e4e",
+  storageBucket: "tap-game-web-92e4e.firebasestorage.app",
+  messagingSenderId: "502296677962",
+  appId: "1:502296677962:web:57e33d2c687ac9b15c20b3"
+};
 
-let autoMiners = parseInt(localStorage.getItem("autoMiners")) || 0;
-let autoCost = parseInt(localStorage.getItem("autoCost")) || 50;
 
-const maxEnergy = 100;
+// INIT FIREBASE
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-// UI
 
-const scoreEl = document.getElementById("score");
-const energyEl = document.getElementById("energy");
+// PLAYER ID
+let playerId = localStorage.getItem("playerId");
 
-const tapPowerEl = document.getElementById("tapPower");
-const tapCostEl = document.getElementById("tapCost");
+if (!playerId) {
 
-const autoMinersEl = document.getElementById("autoMiners");
-const autoCostEl = document.getElementById("autoCost");
+  playerId =
+    "player_" +
+    Math.random().toString(36).substring(2);
 
-// SAVE
+  localStorage.setItem("playerId", playerId);
 
-function save(){
+}
 
-localStorage.setItem("score", score);
-localStorage.setItem("energy", energy);
 
-localStorage.setItem("tapPower", tapPower);
-localStorage.setItem("tapCost", tapCost);
+// GAME VARIABLES
+let score = 0;
+let energy = 100;
+let maxEnergy = 100;
 
-localStorage.setItem("autoMiners", autoMiners);
-localStorage.setItem("autoCost", autoCost);
+let tapPower = 1;
+let miners = 0;
+
+let tapCost = 50;
+let minerCost = 200;
+
+
+// LOAD LOCAL SAVE
+function loadGame() {
+
+  score = parseInt(localStorage.getItem("score")) || 0;
+  tapPower = parseInt(localStorage.getItem("tapPower")) || 1;
+  miners = parseInt(localStorage.getItem("miners")) || 0;
+  tapCost = parseInt(localStorage.getItem("tapCost")) || 50;
+  minerCost = parseInt(localStorage.getItem("minerCost")) || 200;
 
 }
 
-// UPDATE UI
 
-function updateUI(){
+// SAVE LOCAL
+function saveGame() {
 
-scoreEl.innerText = score;
-energyEl.innerText = energy;
-
-tapPowerEl.innerText = tapPower;
-tapCostEl.innerText = tapCost;
-
-autoMinersEl.innerText = autoMiners;
-autoCostEl.innerText = autoCost;
+  localStorage.setItem("score", score);
+  localStorage.setItem("tapPower", tapPower);
+  localStorage.setItem("miners", miners);
+  localStorage.setItem("tapCost", tapCost);
+  localStorage.setItem("minerCost", minerCost);
 
 }
+
+
+// SAVE ONLINE
+function saveOnline() {
+
+  set(ref(db, "players/" + playerId), {
+
+    score: score,
+    tapPower: tapPower,
+    miners: miners,
+    timestamp: Date.now()
+
+  });
+
+}
+
+
+// UPDATE SCREEN
+function updateUI() {
+
+  document.getElementById("score").innerText = score;
+
+  document.getElementById("energy").innerText =
+    "Energy: " + energy + "/" + maxEnergy;
+
+  document.getElementById("tapPower").innerText = tapPower;
+
+  document.getElementById("miners").innerText = miners;
+
+  document.getElementById("tapCost").innerText = tapCost;
+
+  document.getElementById("minerCost").innerText = minerCost;
+
+}
+
 
 // TAP
+document.getElementById("tapBtn").onclick = function() {
 
-document.getElementById("coin").onclick = function(){
+  if (energy <= 0) return;
 
-if(energy > 0){
+  score += tapPower;
 
-score += tapPower;
-energy--;
+  energy--;
 
-save();
-updateUI();
+  saveGame();
+  updateUI();
 
-}
+};
 
-}
 
-// BUY TAP UPGRADE
+// UPGRADE TAP
+window.upgradeTap = function() {
 
-function buyTapUpgrade(){
+  if (score >= tapCost) {
 
-if(score >= tapCost){
+    score -= tapCost;
 
-score -= tapCost;
-tapPower++;
+    tapPower++;
 
-tapCost = Math.floor(tapCost * 1.5);
+    tapCost = Math.floor(tapCost * 1.5);
 
-save();
-updateUI();
+    saveGame();
+    updateUI();
 
-}
+  }
 
-}
+};
 
-// BUY AUTO MINER
 
-function buyAutoMiner(){
+// BUY MINER
+window.buyMiner = function() {
 
-if(score >= autoCost){
+  if (score >= minerCost) {
 
-score -= autoCost;
-autoMiners++;
+    score -= minerCost;
 
-autoCost = Math.floor(autoCost * 1.8);
+    miners++;
 
-save();
-updateUI();
+    minerCost = Math.floor(minerCost * 1.6);
 
-}
+    saveGame();
+    updateUI();
 
-}
+  }
 
-// AUTO MINING
+};
 
-setInterval(function(){
 
-if(autoMiners > 0){
+// AUTO MINERS
+setInterval(function() {
 
-score += autoMiners;
+  score += miners;
 
-save();
-updateUI();
+  saveGame();
+  updateUI();
 
-}
+}, 1000);
 
-},1000);
 
 // ENERGY REGEN
+setInterval(function() {
 
-setInterval(function(){
+  if (energy < maxEnergy)
+    energy++;
 
-if(energy < maxEnergy){
+  updateUI();
 
-energy++;
+}, 500);
 
-save();
-updateUI();
 
-}
+// SAVE ONLINE LOOP
+setInterval(function() {
 
-},1000);
+  saveOnline();
 
+}, 5000);
+
+
+// INIT
+loadGame();
 updateUI();
 
 </script>
 
 </body>
 </html>
-
-
