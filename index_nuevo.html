@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>🔥 Mi Tap Game</title>
+
+<style>
+body {
+  background-color: #111;
+  color: white;
+  font-family: Arial;
+  text-align: center;
+  padding-top: 50px;
+}
+
+button {
+  font-size: 24px;
+  padding: 20px 40px;
+  border-radius: 12px;
+  border: none;
+  background-color: #4CAF50;
+  color: white;
+  cursor: pointer;
+}
+
+.info {
+  font-size: 20px;
+  margin: 10px;
+}
+</style>
+
+</head>
+<body>
+
+<h1>🔥 Mi Tap Game</h1>
+
+<div class="info">Puntos: <span id="points">0</span></div>
+<div class="info">Energía: <span id="energy">100</span></div>
+<div class="info">Nivel: <span id="level">1</span></div>
+<div class="info">Poder por tap: <span id="power">1</span></div>
+
+<button onclick="tap()">TAP 👆</button>
+
+
+<script type="module">
+
+// FIREBASE IMPORTS
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+
+import {
+  getDatabase,
+  ref,
+  set,
+  get
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
+
+
+// CONFIG FIREBASE
+const firebaseConfig = {
+  apiKey: "AIzaSyDuLVVLdgaxvXWK1Km4ppXNQjuxWrr6jS0",
+  authDomain: "tap-game-web-92e4e.firebaseapp.com",
+  databaseURL: "https://tap-game-web-92e4e-default-rtdb.firebaseio.com",
+  projectId: "tap-game-web-92e4e",
+  storageBucket: "tap-game-web-92e4e.firebasestorage.app",
+  messagingSenderId: "502296677962",
+  appId: "1:502296677962:web:57e33d2c687ac9b15c20b3"
+};
+
+
+// INICIAR FIREBASE
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+
+// VARIABLES DEL JUEGO
+window.points = 0;
+window.energy = 100;
+window.level = 1;
+window.power = 1;
+
+const maxEnergy = 100;
+
+
+// ACTUALIZAR PANTALLA
+function updateScreen(){
+
+  document.getElementById("points").innerText = window.points;
+  document.getElementById("energy").innerText = window.energy;
+  document.getElementById("level").innerText = window.level;
+  document.getElementById("power").innerText = window.power;
+
+}
+
+
+// SUBIR NIVEL
+function checkLevelUp(){
+
+  let required = window.level * 50;
+
+  if(window.points >= required){
+
+    window.level++;
+    window.power++;
+
+    alert("🚀 Subiste al nivel " + window.level);
+
+  }
+
+}
+
+
+// TAP
+window.tap = function(){
+
+  if(window.energy <= 0){
+
+    alert("Sin energía");
+    return;
+
+  }
+
+  window.points += window.power;
+  window.energy -= 1;
+
+  checkLevelUp();
+
+  guardarDatos();
+
+  updateScreen();
+
+}
+
+
+// REGENERAR ENERGIA
+function regen(){
+
+  if(window.energy < maxEnergy){
+
+    window.energy++;
+
+    updateScreen();
+
+  }
+
+}
+
+setInterval(regen,1000);
+
+
+// GUARDAR EN FIREBASE
+async function guardarDatos(){
+
+  await set(ref(db,"jugador"),{
+
+    points: window.points,
+    energy: window.energy,
+    level: window.level,
+    power: window.power
+
+  });
+
+  console.log("Guardado en Firebase");
+
+}
+
+
+// CARGAR DESDE FIREBASE
+async function cargarDatos(){
+
+  const snapshot = await get(ref(db,"jugador"));
+
+  if(snapshot.exists()){
+
+    const data = snapshot.val();
+
+    window.points = data.points ?? 0;
+    window.energy = data.energy ?? 100;
+    window.level = data.level ?? 1;
+    window.power = data.power ?? 1;
+
+    console.log("Datos cargados");
+
+  }
+
+  updateScreen();
+
+}
+
+
+// INICIAR
+cargarDatos();
+
+</script>
+
+
+</body>
+</html>
