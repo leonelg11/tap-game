@@ -24,15 +24,10 @@ body {
   margin: 20px;
 }
 
-#energy {
-  font-size: 20px;
-  color: #38bdf8;
-}
-
 button {
   padding: 10px 20px;
   font-size: 18px;
-  margin-top: 20px;
+  margin: 10px;
   cursor: pointer;
 }
 
@@ -47,38 +42,87 @@ button {
 
 <div id="score">0</div>
 
-<div id="energy">Energy: 100 / 100</div>
+<div>Energy: <span id="energy">100</span>/100</div>
 
-<button onclick="buyUpgrade()">
-Upgrade Tap (+1) Cost: <span id="upgradeCost">10</span>
+<hr>
+
+<h3>Upgrades</h3>
+
+<button onclick="buyTapUpgrade()">
+Upgrade Tap Power
+Cost: <span id="tapCost">10</span>
+</button>
+
+<br>
+
+<button onclick="buyAutoMiner()">
+Buy Auto Miner
+Cost: <span id="autoCost">50</span>
 </button>
 
 <div>Tap Power: <span id="tapPower">1</span></div>
 
+<div>Auto Miners: <span id="autoMiners">0</span></div>
+
 <script>
+
+// DATA
 
 let score = parseInt(localStorage.getItem("score")) || 0;
 let energy = parseInt(localStorage.getItem("energy")) || 100;
+
 let tapPower = parseInt(localStorage.getItem("tapPower")) || 1;
-let upgradeCost = parseInt(localStorage.getItem("upgradeCost")) || 10;
+let tapCost = parseInt(localStorage.getItem("tapCost")) || 10;
+
+let autoMiners = parseInt(localStorage.getItem("autoMiners")) || 0;
+let autoCost = parseInt(localStorage.getItem("autoCost")) || 50;
 
 const maxEnergy = 100;
 
-const scoreDisplay = document.getElementById("score");
-const energyDisplay = document.getElementById("energy");
-const tapPowerDisplay = document.getElementById("tapPower");
-const upgradeCostDisplay = document.getElementById("upgradeCost");
+// UI
 
-function updateUI(){
+const scoreEl = document.getElementById("score");
+const energyEl = document.getElementById("energy");
 
-scoreDisplay.innerText = score;
-energyDisplay.innerText = "Energy: " + energy + " / " + maxEnergy;
-tapPowerDisplay.innerText = tapPower;
-upgradeCostDisplay.innerText = upgradeCost;
+const tapPowerEl = document.getElementById("tapPower");
+const tapCostEl = document.getElementById("tapCost");
+
+const autoMinersEl = document.getElementById("autoMiners");
+const autoCostEl = document.getElementById("autoCost");
+
+// SAVE
+
+function save(){
+
+localStorage.setItem("score", score);
+localStorage.setItem("energy", energy);
+
+localStorage.setItem("tapPower", tapPower);
+localStorage.setItem("tapCost", tapCost);
+
+localStorage.setItem("autoMiners", autoMiners);
+localStorage.setItem("autoCost", autoCost);
 
 }
 
-document.getElementById("coin").onclick = () => {
+// UPDATE UI
+
+function updateUI(){
+
+scoreEl.innerText = score;
+energyEl.innerText = energy;
+
+tapPowerEl.innerText = tapPower;
+tapCostEl.innerText = tapCost;
+
+autoMinersEl.innerText = autoMiners;
+autoCostEl.innerText = autoCost;
+
+}
+
+// TAP
+
+document.getElementById("coin").onclick = function(){
 
 if(energy > 0){
 
@@ -90,15 +134,18 @@ updateUI();
 
 }
 
-};
+}
 
-function buyUpgrade(){
+// BUY TAP UPGRADE
 
-if(score >= upgradeCost){
+function buyTapUpgrade(){
 
-score -= upgradeCost;
+if(score >= tapCost){
+
+score -= tapCost;
 tapPower++;
-upgradeCost = Math.floor(upgradeCost * 1.5);
+
+tapCost = Math.floor(tapCost * 1.5);
 
 save();
 updateUI();
@@ -107,20 +154,47 @@ updateUI();
 
 }
 
-function save(){
+// BUY AUTO MINER
 
-localStorage.setItem("score", score);
-localStorage.setItem("energy", energy);
-localStorage.setItem("tapPower", tapPower);
-localStorage.setItem("upgradeCost", upgradeCost);
+function buyAutoMiner(){
+
+if(score >= autoCost){
+
+score -= autoCost;
+autoMiners++;
+
+autoCost = Math.floor(autoCost * 1.8);
+
+save();
+updateUI();
 
 }
 
-setInterval(()=>{
+}
+
+// AUTO MINING
+
+setInterval(function(){
+
+if(autoMiners > 0){
+
+score += autoMiners;
+
+save();
+updateUI();
+
+}
+
+},1000);
+
+// ENERGY REGEN
+
+setInterval(function(){
 
 if(energy < maxEnergy){
 
 energy++;
+
 save();
 updateUI();
 
@@ -134,4 +208,5 @@ updateUI();
 
 </body>
 </html>
+
 
