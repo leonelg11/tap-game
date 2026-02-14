@@ -2,9 +2,10 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Tap Game</title>
+<title>Tap Game PRO</title>
 
 <style>
+
 body {
   background: #0f172a;
   color: white;
@@ -27,12 +28,20 @@ body {
   font-size: 20px;
   color: #38bdf8;
 }
+
+button {
+  padding: 10px 20px;
+  font-size: 18px;
+  margin-top: 20px;
+  cursor: pointer;
+}
+
 </style>
 
 </head>
 <body>
 
-<h1>Tap Game</h1>
+<h1>Tap Game PRO</h1>
 
 <div id="coin">🪙</div>
 
@@ -40,49 +49,84 @@ body {
 
 <div id="energy">Energy: 100 / 100</div>
 
+<button onclick="buyUpgrade()">
+Upgrade Tap (+1) Cost: <span id="upgradeCost">10</span>
+</button>
+
+<div>Tap Power: <span id="tapPower">1</span></div>
+
 <script>
 
-let score = localStorage.getItem("score") 
-  ? parseInt(localStorage.getItem("score")) 
-  : 0;
-
-let energy = localStorage.getItem("energy") 
-  ? parseInt(localStorage.getItem("energy")) 
-  : 100;
+let score = parseInt(localStorage.getItem("score")) || 0;
+let energy = parseInt(localStorage.getItem("energy")) || 100;
+let tapPower = parseInt(localStorage.getItem("tapPower")) || 1;
+let upgradeCost = parseInt(localStorage.getItem("upgradeCost")) || 10;
 
 const maxEnergy = 100;
 
 const scoreDisplay = document.getElementById("score");
 const energyDisplay = document.getElementById("energy");
+const tapPowerDisplay = document.getElementById("tapPower");
+const upgradeCostDisplay = document.getElementById("upgradeCost");
 
-function updateUI() {
-  scoreDisplay.innerText = score;
-  energyDisplay.innerText = "Energy: " + energy + " / " + maxEnergy;
+function updateUI(){
+
+scoreDisplay.innerText = score;
+energyDisplay.innerText = "Energy: " + energy + " / " + maxEnergy;
+tapPowerDisplay.innerText = tapPower;
+upgradeCostDisplay.innerText = upgradeCost;
+
 }
 
 document.getElementById("coin").onclick = () => {
 
-  if (energy > 0) {
-    score++;
-    energy--;
+if(energy > 0){
 
-    localStorage.setItem("score", score);
-    localStorage.setItem("energy", energy);
+score += tapPower;
+energy--;
 
-    updateUI();
-  }
+save();
+updateUI();
+
+}
 
 };
 
-setInterval(() => {
+function buyUpgrade(){
 
-  if (energy < maxEnergy) {
-    energy++;
-    localStorage.setItem("energy", energy);
-    updateUI();
-  }
+if(score >= upgradeCost){
 
-}, 1000);
+score -= upgradeCost;
+tapPower++;
+upgradeCost = Math.floor(upgradeCost * 1.5);
+
+save();
+updateUI();
+
+}
+
+}
+
+function save(){
+
+localStorage.setItem("score", score);
+localStorage.setItem("energy", energy);
+localStorage.setItem("tapPower", tapPower);
+localStorage.setItem("upgradeCost", upgradeCost);
+
+}
+
+setInterval(()=>{
+
+if(energy < maxEnergy){
+
+energy++;
+save();
+updateUI();
+
+}
+
+},1000);
 
 updateUI();
 
@@ -90,3 +134,4 @@ updateUI();
 
 </body>
 </html>
+
