@@ -1,64 +1,70 @@
 import { db } from "./firebase.js";
 import { ref, set, get, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-let userId = "user_" + Math.random().toString(36).substr(2, 9);
+let userId = localStorage.getItem("userId");
+
+if(!userId){
+  userId = "user_" + Math.random().toString(36).substr(2,9);
+  localStorage.setItem("userId", userId);
+}
 
 let score = 0;
 let energy = 100;
 let tapPower = 1;
 
-// Referencia al usuario en Firebase
+const scoreEl = document.getElementById("score");
+const energyEl = document.getElementById("energy");
+const tapButton = document.getElementById("tapButton");
+
 const userRef = ref(db, "users/" + userId);
 
-// Crear usuario si no existe
-async function initUser() {
+async function loadGame(){
 
-    const snapshot = await get(userRef);
+  const snapshot = await get(userRef);
 
-    if (!snapshot.exists()) {
+  if(snapshot.exists()){
 
-        await set(userRef, {
-            score: 0,
-            energy: 100,
-            tapPower: 1
-        });
+    const data = snapshot.val();
 
-    } else {
+    score = data.score || 0;
+    energy = data.energy || 100;
+    tapPower = data.tapPower || 1;
 
-        const data = snapshot.val();
+  }else{
 
-        score = data.score;
-        energy = data.energy;
-        tapPower = data.tapPower;
-
-        updateUI();
-    }
-}
-
-// Actualizar interfaz
-function updateUI() {
-
-    document.getElementById("score").innerText = score;
-    document.getElementById("energy").innerText = energy;
-}
-
-// TAP
-window.tap = async function () {
-
-    if (energy <= 0) return;
-
-    score += tapPower;
-    energy -= 1;
-
-    updateUI();
-
-    await update(userRef, {
-        score: score,
-        energy: energy,
-        tapPower: tapPower
+    await set(userRef, {
+      score:0,
+      energy:100,
+      tapPower:1
     });
 
+  }
+
+  updateUI();
 }
 
-// iniciar
-initUser();
+function updateUI(){
+
+  scoreEl.innerText = score;
+  energyEl.innerText = "Energy: " + energy;
+
+}
+
+tapButton.addEventListener("click", async ()=>{
+
+  if(energy <= 0) return;
+
+  score += tapPower;
+  energy -= 1;
+
+  updateUI();
+
+  await update(userRef,{
+    score:score,
+    energy:energy,
+    tapPower:tapPower
+  });
+
+});
+
+loadGame();

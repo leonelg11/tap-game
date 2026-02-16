@@ -1,6 +1,5 @@
-// firebase.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyC3vKROREYXZFSbMbbmJ9B-xLPmSQpT8SIo",
@@ -13,17 +12,4 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-export async function saveGame(userId, data) {
-  await set(ref(db, 'users/' + userId), data);
-}
-
-export async function loadGame(userId) {
-  const snapshot = await get(child(ref(db), 'users/' + userId));
-  if (snapshot.exists()) {
-    return snapshot.val();
-  } else {
-    return null;
-  }
-}
+export const db = getDatabase(app);
