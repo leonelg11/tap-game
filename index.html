@@ -1,34 +1,67 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-  <title>Tap Game Firebase</title>
+  <title>Tap Game PRO</title>
   <style>
-    body {
-      background: #0b1a33;
-      color: white;
-      text-align: center;
-      font-family: Arial;
-      margin-top: 100px;
+
+    body{
+      background:#0b1730;
+      color:white;
+      font-family:Arial;
+      text-align:center;
     }
-    #tap {
-      width: 100px;
-      height: 100px;
-      border: 3px solid white;
-      margin: 20px auto;
-      cursor: pointer;
+
+    #tap{
+
+      width:120px;
+      height:120px;
+      border:3px solid white;
+      margin:20px auto;
+      cursor:pointer;
+
     }
+
+    button{
+
+      padding:10px;
+      margin:10px;
+      font-size:16px;
+
+    }
+
   </style>
 </head>
+
 <body>
 
-<h1>Tap Game Firebase</h1>
+<h1>Tap Game PRO</h1>
 
 <div id="tap"></div>
 
 <h2 id="score">0</h2>
-<p>Energy: <span id="energy">100/100</span></p>
 
-<script type="module" src="./game.js"></script>
+<div id="level">Level: 1</div>
+
+<div id="energy">Energy: 100</div>
+
+<hr>
+
+<h2>Shop</h2>
+
+<button onclick="upgradeTap()">
+Upgrade Tap Power
+</button>
+
+<button onclick="buyMiner()">
+Buy Auto Miner
+</button>
+
+<div id="stats"></div>
+
+<script type="module" src="script.js"></script>
 
 </body>
 </html>
+
+
