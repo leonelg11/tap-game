@@ -1,42 +1,64 @@
-// game.js
-import { saveGame, loadGame } from './firebase.js';
+import { db } from "./firebase.js";
+import { ref, set, get, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+let userId = "user_" + Math.random().toString(36).substr(2, 9);
 
 let score = 0;
 let energy = 100;
 let tapPower = 1;
-let userId = localStorage.getItem("tapUserId");
 
-if (!userId) {
-  userId = "user_" + Math.random().toString(36).substring(2);
-  localStorage.setItem("tapUserId", userId);
+// Referencia al usuario en Firebase
+const userRef = ref(db, "users/" + userId);
+
+// Crear usuario si no existe
+async function initUser() {
+
+    const snapshot = await get(userRef);
+
+    if (!snapshot.exists()) {
+
+        await set(userRef, {
+            score: 0,
+            energy: 100,
+            tapPower: 1
+        });
+
+    } else {
+
+        const data = snapshot.val();
+
+        score = data.score;
+        energy = data.energy;
+        tapPower = data.tapPower;
+
+        updateUI();
+    }
 }
 
-const scoreEl = document.getElementById("score");
-const energyEl = document.getElementById("energy");
-const tapBtn = document.getElementById("tap");
-
-async function init() {
-  const data = await loadGame(userId);
-  if (data) {
-    score = data.score || 0;
-    energy = data.energy || 100;
-    tapPower = data.tapPower || 1;
-  }
-  updateUI();
-}
-
+// Actualizar interfaz
 function updateUI() {
-  scoreEl.innerText = score;
-  energyEl.innerText = energy + "/100";
+
+    document.getElementById("score").innerText = score;
+    document.getElementById("energy").innerText = energy;
 }
 
-tapBtn.onclick = async () => {
-  if (energy > 0) {
-    score += tapPower;
-    energy--;
-    updateUI();
-    await saveGame(userId, { score, energy, tapPower });
-  }
-};
+// TAP
+window.tap = async function () {
 
-init();
+    if (energy <= 0) return;
+
+    score += tapPower;
+    energy -= 1;
+
+    updateUI();
+
+    await update(userRef, {
+        score: score,
+        energy: energy,
+        tapPower: tapPower
+    });
+
+}
+
+// iniciar
+initUser();
